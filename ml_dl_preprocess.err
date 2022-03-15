@@ -1,3 +1,0 @@
-/scratch/kp2670/sean_gabby/Urban-Object-Classification-using-LiDAR-Data/ml_dl_preprocessing.py:25: DeprecationWarning: `np.float` is a deprecated alias for the builtin `float`. To silence this warning, use `float` by itself. Doing this will not modify any behavior and is safe. If you specifically wanted the numpy scalar type, use `np.float64` here.
-Deprecated in NumPy 1.20; for more details and guidance: https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
-  data_np = np.zeros(data_pd.shape, dtype=np.float)

@@ -39,21 +39,21 @@ warnings.filterwarnings("ignore")
 
 
 tf.config.list_physical_devices('GPU')
-# mesh = trimesh.load('../data/paris_lille/mesh_objects/mesh_302020400_580.ply')
-mesh = trimesh.load('paris_lille/mesh_objects/mesh_302020400_580.ply')
-mesh.show()
+# mesh = trimesh.load('../data/mesh_objects/mesh_302020400_580.ply')
+# # mesh = trimesh.load('paris_lille/mesh_objects/mesh_302020400_580.ply')
+# mesh.show()
 
 
-# In[6]:
+# # In[6]:
 
 
-points = mesh.sample(500)
+# points = mesh.sample(500)
 
-fig = plt.figure(figsize=(25,25))
-ax = fig.add_subplot(111, projection="3d")
-ax.scatter(points[:,0], points[:,1], points[:,2])
-ax.set_axis_off()
-plt.show()
+# fig = plt.figure(figsize=(25,25))
+# ax = fig.add_subplot(111, projection="3d")
+# ax.scatter(points[:,0], points[:,1], points[:,2])
+# ax.set_axis_off()
+# plt.show()
 
 
 # In[148]:
@@ -78,8 +78,8 @@ plt.show()
 points = []
 labels = []
 
-# for file in glob.glob('../data/paris_lille/sampled_ply/*.ply'):
-for file in glob.glob('paris_lille/sampled_ply/*.ply'):    
+for file in glob.glob('../data/sampled_ply/*.ply'):
+# for file in glob.glob('paris_lille/sampled_ply/*.ply'):    
     
 #     print(file)
     label = file.split('/')[-1].split('_')[2]
@@ -382,13 +382,23 @@ earlystopping = callbacks.EarlyStopping(monitor ="val_loss",
                                         mode ="min", patience = 5, 
                                         restore_best_weights = True)
 
+# #to save the model 
+# checkpoint_path = "training_1/cp.ckpt"
+# checkpoint_dir = os.path.dirname(checkpoint_path)
+
+# # Create a callback that saves the model's weights
+# cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+#                                                  save_weights_only=True,
+#                                                  verbose=1)
+
 
 # In[75]:
 
 
 #fit = model.fit(train_dataset, epochs=50, validation_data=val_dataset, callbacks=[earlystopping])
-fit = model.fit(train_dataset, epochs=1, validation_data=val_dataset, callbacks=[earlystopping])
+fit = model.fit(train_dataset, epochs=1, validation_data=val_dataset, callbacks=[earlystopping,cp_callback])
 
+# os.listdir(checkpoint_dir)
 
 # In[82]:
 
@@ -412,9 +422,9 @@ print(f1_score(y_test, pred, average='micro'))
 print(f1_score(y_test, pred, average='weighted'))
 
 
-# In[115]:
+# In[115]:c
 
-
+'''
 ## some testing KP
 # all_class_score=f1_score(y_test, pred, average=None)
 # print(len(all_class_score))
@@ -430,6 +440,7 @@ print(f1_score(y_test, pred, average='weighted'))
 #     count+=1
 #     if count==1:
 #         break
+
 all_classes_str=list(rev_mapping.keys())
 str_pred=[all_classes_str[i] for i in pred]
 str_y_test=[all_classes_str[i] for i in y_test]
@@ -462,4 +473,4 @@ plt.savefig('confusionmatrix_pointnet.png', dpi=600)
 
 
 
-
+'''

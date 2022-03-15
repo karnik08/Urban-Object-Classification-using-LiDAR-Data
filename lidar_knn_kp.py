@@ -23,16 +23,18 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
-
+import joblib
+import pickle
 # # **IMPORT DATA, TEST/TRAIN SPLIT, SCALE**
 
 # In[3]:
 
 
-# features = pd.read_csv("../data/paris_lille/geometric_features.csv")
-# features = pd.read_csv("geometric_features.csv")
+# features = pd.read_csv("../geometric_features.csv")
+# # features = pd.read_csv("../data/test_geometric_features_normalized.csv")
 
 # X = features.drop(['class'], axis=1)
+# # X = features.drop(['id'], axis=1)
 # y = features[['class']].values.flatten()
 
 # X_train, X_test, y_train, y_test = train_test_split(X, y)
@@ -43,10 +45,12 @@ warnings.filterwarnings("ignore")
 # y_train = y_train.values.flatten()
 # y_train=y_train.iloc[:,1].to_numpy()
 # y_test=y_test.iloc[:,1].to_numpy()
-X_train=pd.read_csv('X_train.csv')
-X_test=pd.read_csv('X_test.csv')
-y_train=pd.read_csv('y_train.csv')
-y_test=pd.read_csv('y_test.csv')
+
+
+X_train=pd.read_csv('../X_train.csv')
+X_test=pd.read_csv('../X_test.csv')
+y_train=pd.read_csv('../y_train.csv')
+y_test=pd.read_csv('../y_test.csv')
 y_train=y_train['true_labels'].to_numpy()
 y_test=y_test['true_labels'].to_numpy()
 
@@ -71,30 +75,37 @@ X_test = scaler.transform(X_test)
 
 knn_model = KNeighborsClassifier(algorithm='kd_tree',metric='euclidean',n_neighbors=9,weights='distance')
 knn_model.fit(X_train, y_train)
-y_pred = knn_model.predict(X_test)
+
+
+#to save model using job lib
+filename = 'knn.sav'
+joblib.dump(knn_model, filename)
+# pickle.dump(knn_model, open(filename, 'wb'))
+
+# y_pred = knn_model.predict(X_test)
 
 
 # print('X_test keys',X_test.keys())
-print(classification_report(y_test, y_pred, digits=3))
-print(f1_score(y_test, y_pred, average='micro'))
+# print(classification_report(y_test, y_pred, digits=3))
+# print(f1_score(y_test, y_pred, average='micro'))
 
 
-# kp save to csv file
-results=pd.read_csv('algo_results.csv')
-algo_name='knn'
-results = results.loc[:, ~results.columns.str.contains('^Unnamed')]
-# print('results from 1st column',results[2:])
-print(results)
-print('results',results.shape)
-y_pred=pd.DataFrame(y_pred)
-y_pred.columns=[algo_name]
-try:
-    results[algo_name]=y_pred[algo_name]
-except:
-    results=pd.concat([results, y_pred[algo_name]],axis=1)
-print('y_pred',y_pred.shape)
-print('results',results.shape)
-results.to_csv('algo_results.csv')
+# # kp save to csv file
+# results=pd.read_csv('algo_results.csv')
+# algo_name='knn'
+# results = results.loc[:, ~results.columns.str.contains('^Unnamed')]
+# # print('results from 1st column',results[2:])
+# print(results)
+# print('results',results.shape)
+# y_pred=pd.DataFrame(y_pred)
+# y_pred.columns=[algo_name]
+# try:
+#     results[algo_name]=y_pred[algo_name]
+# except:
+#     results=pd.concat([results, y_pred[algo_name]],axis=1)
+# print('y_pred',y_pred.shape)
+# print('results',results.shape)
+# results.to_csv('algo_results.csv')
 
 
 '''
