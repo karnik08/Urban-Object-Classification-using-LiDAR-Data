@@ -73,11 +73,11 @@ def createBPTriangleMesh(directory):
         radius = 1.5 * avg_distance
 
         mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(pcd, o3d.utility.DoubleVector([radius, radius*2]))
-        filename = 'data/mesh_objects/' + 'mesh_' + file.split('/')[-1]
+        filename = '../data/mesh_objects/' + 'mesh_' + file.split('/')[-1]
 #         o3d.io.write_triangle_mesh(filename, mesh)
 
         sampled = mesh.sample_points_poisson_disk(number_of_points=1000)
-        filename = 'data/sampled_ply/' + 'sampled_' + file.split('/')[-1]
+        filename = '../data/sampled_ply/' + 'sampled_' + file.split('/')[-1]
 #         o3d.io.write_point_cloud(filename, sampled)
 #     print(count)
 
@@ -93,7 +93,7 @@ def createBPTriangleMesh(directory):
 
 
 # createBPTriangleMesh('../../data/paris_lille/ply_objects/*.ply')
-createBPTriangleMesh('data/ply_objects/*.ply')
+createBPTriangleMesh('../data/ply_objects/*.ply')
 
 
 # # **PARALLELIZED**

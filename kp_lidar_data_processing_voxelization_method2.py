@@ -27,9 +27,9 @@ from mpl_toolkits.mplot3d import Axes3D
 # In[13]:
 
 
-ply0 = PlyData.read('data/Paris.ply')
-ply1 = PlyData.read('data/Lille1.ply')
-ply2 = PlyData.read('data/Lille2.ply')
+ply0 = PlyData.read('../data/Paris.ply')
+ply1 = PlyData.read('../data/Lille1.ply')
+ply2 = PlyData.read('../data/Lille2.ply')
 
 
 
@@ -70,7 +70,7 @@ def createPlyFile(df):
         if df_['class'].iloc[0] == 0 or df_['class'].iloc[0] == 100000000:
             continue
         else:
-            file_name = "data/ply_objects/" + str(int(df_.iloc[0]['class'])) + "_" + str(int(df_.iloc[0].label)) + ".ply"
+            file_name = "../data/ply_objects/" + str(int(df_.iloc[0]['class'])) + "_" + str(int(df_.iloc[0].label)) + ".ply"
             print(file_name)
             data_np = df_[['x', 'y', 'z']].to_numpy()
             pcd = o3d.geometry.PointCloud()

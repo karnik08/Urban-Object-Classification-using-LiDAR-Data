@@ -1,41 +1,21 @@
-#!/usr/bin/env python
-# coding: utf-8
+import os
+from os import listdir
+import glob
 
-# # **IMPORT LIBRARIES**
-
-# In[8]:
-
-
+import multiprocessing as mp
 import time
 
 import numpy as np
-from numpy import linalg
 import pandas as pd
 
-from sklearn import preprocessing
 from plyfile import PlyData, PlyElement
+import open3d as o3d
+from pyntcloud import PyntCloud
 
-import warnings
-warnings.filterwarnings("ignore")
-# # **READ IN FILES**
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-# In[4]:
-
-
-# ply0 = PlyData.read('../data/paris_lille/paris_lille/Paris.ply')
-# ply1 = PlyData.read('../data/paris_lille/paris_lille/Lille1.ply')
-# ply2 = PlyData.read('../data/paris_lille/paris_lille/Lille2.ply')
-
-ply0 = PlyData.read('../data/Paris.ply')
-ply1 = PlyData.read('../data/Lille1.ply')
-ply2 = PlyData.read('../data/Lille2.ply')
-
-
-
-# # **CONVERT TO NUMPY AND PANDAS**
-
-# In[5]:
-
+from sklearn import preprocessing
 
 def plyToData(ply_file):
     
@@ -49,19 +29,11 @@ def plyToData(ply_file):
 
     return data_np, data_pd
 
-
-data_np0, data_pd0 = plyToData(ply0)
-data_np1, data_pd1 = plyToData(ply1)
-data_np2, data_pd2 = plyToData(ply2)
-
-
-# # **CREATE FEATURES**
-
-# In[6]:
-
-
-def getFeatures(data):
-    
+idd=0
+def createPlyFile(df):
+    global idd
+    data=df.copy()
+#     check=0
     normalized_data = pd.DataFrame(preprocessing.minmax_scale(data[['x', 'y', 'z']]))
     normalized_data.columns = ['x', 'y', 'z']
     normalized_data = normalized_data.reset_index(drop=True)
@@ -70,70 +42,63 @@ def getFeatures(data):
     data = pd.concat([normalized_data, data], axis=1)
     
     features = pd.DataFrame()
+    for i in df.label.unique():
+#         check+=1
+#         if check==10:
+# #             return
+#             break
+        df_ = df[df.label == i]
+        
+        dfml = data[data.label == i]
 
-    for label in data.label.unique():
+        if df_['class'].iloc[0] == 0 or df_['class'].iloc[0] == 100000000:
+            continue
+        else:
+#             print(i)
+#             print('dl',df_.shape)
+#             print('ml',dfml.shape)
+            file_name = "../data/test_ply_objects/" +str(idd)+ "-"+str(int(df_.iloc[0]['class'])) + "_" + str(int(df_.iloc[0].label)) + ".ply"
+            data_np = df_[['x', 'y', 'z']].to_numpy()
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(data_np)
+#             print(pcd)
+            #write to the file
+#             o3d.io.write_point_cloud(file_name, pcd)
+            
+            
+            ##ml
+            dfml = dfml[['x', 'y', 'z']]
+            dfml = dfml.to_numpy()
 
-        df = data[data.label == label]
-        df = df[['x', 'y', 'z']]
-        df = df.to_numpy()
-                
-        covariance_matrix = np.cov(df.T)
-        eigen_values, eigen_vectors = np.linalg.eig(covariance_matrix)
+            covariance_matrix = np.cov(dfml.T)
+            eigen_values, eigen_vectors = np.linalg.eig(covariance_matrix)
 
-        linearity = (eigen_values[0] - eigen_values[1]) / eigen_values[0]
-        planarity = (eigen_values[1] - eigen_values[2]) / eigen_values[1]
-        sphericity = eigen_values[2] / eigen_values[0]
-        omnivariance = (eigen_values[0] * eigen_values[1] * eigen_values[2]) ** 1/3
-        anisotropy = (eigen_values[0] - eigen_values[2]) / eigen_values[0]
-        eigenentropy = (eigen_values[0] * np.log(eigen_values[0]) + eigen_values[1] * np.log(eigen_values[1]) + eigen_values[2] * np.log(eigen_values[2])) * -1
-        sum_of_eigenvalues = eigen_values[0] + eigen_values[1] + eigen_values[2]
-        change_curvature = eigen_values[2] / (eigen_values[0] + eigen_values[1] + eigen_values[2]) 
-        temp=pd.DataFrame([[label,linearity,planarity,sphericity,omnivariance, anisotropy,eigenentropy,sum_of_eigenvalues,change_curvature]],
+            linearity = (eigen_values[0] - eigen_values[1]) / eigen_values[0]
+            planarity = (eigen_values[1] - eigen_values[2]) / eigen_values[1]
+            sphericity = eigen_values[2] / eigen_values[0]
+            omnivariance = (eigen_values[0] * eigen_values[1] * eigen_values[2]) ** 1/3
+            anisotropy = (eigen_values[0] - eigen_values[2]) / eigen_values[0]
+            eigenentropy = (eigen_values[0] * np.log(eigen_values[0]) + eigen_values[1] * np.log(eigen_values[1]) + eigen_values[2] * np.log(eigen_values[2])) * -1
+            sum_of_eigenvalues = eigen_values[0] + eigen_values[1] + eigen_values[2]
+            change_curvature = eigen_values[2] / (eigen_values[0] + eigen_values[1] + eigen_values[2])
+            temp=pd.DataFrame([[i,linearity,planarity,sphericity,omnivariance,anisotropy,eigenentropy,
+                            sum_of_eigenvalues,change_curvature,idd]],
                              columns=['label', 'linearity', 'planarity', 'sphericity',
                                   'omnivariance', 'anisotropy', 'eigenentropy', 
-                                  'sum_of_eigenvalues', 'change_curvature'])
-        features=pd.concat([features,temp])
-
-#         features = features.append({'label' : label, 'linearity' : linearity, 'planarity' : planarity, 'sphericity' : sphericity,
-#                               'omnivariance' : omnivariance, 'anisotropy' : anisotropy, 'eigenentropy' : eigenentropy, 
-#                               'sum_of_eigenvalues' : sum_of_eigenvalues, 'change_curvature' : change_curvature}, ignore_index=True)
+                                  'sum_of_eigenvalues', 'change_curvature', 'id'])
+            features=pd.concat([features,temp])
+    
+#             print(features)
+        
+            idd+=1
+#     print(features)
     return features
-
-
-# In[9]:
-
-
-start = time.time()
-features0 = getFeatures(data_pd0)
-features1 = getFeatures(data_pd1)
-features2 = getFeatures(data_pd2)
-end = time.time()
-print(end - start)
-
-
-# # **ADD CLASS CODES**
-
-# In[12]:
-
-
 def labelsToClasses(df, featureDF):
-    print('before merging labelstoclasses',featureDF.shape)
+    
     label_to_class = df[['label', 'class']].drop_duplicates()
     featuresDF = featureDF.merge(label_to_class, on=['label'])
-    print('after merging labelstoclasses',featureDF.shape)
-
     
     return featuresDF
-
-features0 = labelsToClasses(data_pd0, features0)
-features1 = labelsToClasses(data_pd1, features1)
-features2 = labelsToClasses(data_pd2, features2)
-
-
-# # **ADD MEDIAN REFLECTANCE VALUES**
-
-# In[13]:
-
 
 def addMedianReflectance(df, featureDF):
     
@@ -143,32 +108,16 @@ def addMedianReflectance(df, featureDF):
         
         _df = df[df['class'] == class_name]
         value = _df['reflectance'].median()
+        
         temp=pd.DataFrame([[class_name,value]],columns=['class', 'reflectance'])
+#         reflectance = reflectance.append(pd.Series({'class' : class_name, 'reflectance' : value}), ignore_index=True)
         reflectance=pd.concat([reflectance,temp])
-    print('before merging reflectance',featureDF.shape)
-    featureDF = featureDF.merge(reflectance, on=['class'])
-    print('after merging reflectance',featureDF.shape)
+    
+#     featureDF = featureDF.merge(reflectance, on=['class'])
+    featureDF=pd.merge(featureDF, reflectance, on="class")
     featureDF = featureDF.drop(['label'], axis=1)
 
     return featureDF
-
-features0 = addMedianReflectance(data_pd0, features0)
-features1 = addMedianReflectance(data_pd1, features1)
-features2 = addMedianReflectance(data_pd2, features2)
-
-
-# # **COMBINE DATAFRAMES**
-
-# In[15]:
-
-
-features = pd.concat([features0, features1, features2])
-
-
-# # **REPLACE CLASS CODES WITH NAMES**
-
-# In[16]:
-
 
 object_classes = {
     '0' : 'Unclassified',
@@ -290,23 +239,34 @@ object_classes = {
     '304050000' : 'Hedge'
 }
 
+ply0 = PlyData.read('../data/Paris.ply')
+ply1 = PlyData.read('../data/Lille1.ply')
+ply2 = PlyData.read('../data/Lille2.ply')
+
+
+data_np0, data_pd0 = plyToData(ply0)
+data_np1, data_pd1 = plyToData(ply1)
+data_np2, data_pd2 = plyToData(ply2)
+
+features0 = createPlyFile(data_pd0)
+features1 = createPlyFile(data_pd1)
+features2 = createPlyFile(data_pd2)
+
+features0 = labelsToClasses(data_pd0, features0)
+features1 = labelsToClasses(data_pd1, features1)
+features2 = labelsToClasses(data_pd2, features2)
+
+features0 = addMedianReflectance(data_pd0, features0)
+features1 = addMedianReflectance(data_pd1, features1)
+features2 = addMedianReflectance(data_pd2, features2)
+
+features = pd.concat([features0, features1, features2])
+
 features['class'] = features['class'].astype(str)
 features['class'] = features['class'].map(object_classes)
-
-
-# # **DROP CERTAIN CLASS TYPES**
-
-# In[17]:
-
 
 features = features[features['class'] != 'Unclassified']
 features = features[features['class'] != 'Other']
 
-
-# # **WRITE OUT CSV**
-
-# In[19]:
-
 print(features.shape)
-# features.to_csv("../data/paris_lille/geometric_features_normalized.csv", index=False)
-
+# features.to_csv("../data/test_geometric_features_normalized.csv", index=False)
