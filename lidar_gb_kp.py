@@ -18,7 +18,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from scipy.stats import randint, uniform
 
 import matplotlib.pyplot as plt
-
+from time import perf_counter
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -36,10 +36,10 @@ warnings.filterwarnings("ignore")
 # X_train, X_test, y_train, y_test = train_test_split(X, y)
 
 ## kp reading testing and training data seperately 
-X_train=pd.read_csv('X_train.csv')
-X_test=pd.read_csv('X_test.csv')
-y_train=pd.read_csv('y_train.csv')
-y_test=pd.read_csv('y_test.csv')
+X_train=pd.read_csv('../X_train.csv')
+X_test=pd.read_csv('../X_test.csv')
+y_train=pd.read_csv('../y_train.csv')
+y_test=pd.read_csv('../y_test.csv')
 y_train=y_train['true_labels'].to_numpy()
 y_test=y_test['true_labels'].to_numpy()
 
@@ -55,28 +55,40 @@ X_test = scaler.transform(X_test)
 
 
 gb_model = GradientBoostingClassifier(learning_rate=15, n_estimators=18, max_depth=8)
+start_time=perf_counter()
 gb_model.fit(X_train, y_train)
+end_time=perf_counter()
+print('total_training_time: ',end_time-start_time)
 y_pred = gb_model.predict(X_test)
 
 print(classification_report(y_test, y_pred, digits=3))
 print(f1_score(y_test, y_pred, average='micro'))
 
+# # **FEATURE IMPORTANCE**
+
+# In[33]:
+
+
+importance = gb_model.feature_importances_
+for i,v in enumerate(importance):
+    print('Feature: %0d, Score: %.5f' % (i,v))
+    
 # kp save to csv file
-results=pd.read_csv('algo_results.csv')
-algo_name='gb'
-results = results.loc[:, ~results.columns.str.contains('^Unnamed')]
-# print('results from 1st column',results[2:])
-print(results)
-print('results',results.shape)
-y_pred=pd.DataFrame(y_pred)
-y_pred.columns=[algo_name]
-try:
-    results[algo_name]=y_pred[algo_name]
-except:
-    results=pd.concat([results, y_pred[algo_name]],axis=1)
-print('y_pred',y_pred.shape)
-print('results',results.shape)
-results.to_csv('algo_results.csv')
+# results=pd.read_csv('algo_results.csv')
+# algo_name='gb'
+# results = results.loc[:, ~results.columns.str.contains('^Unnamed')]
+# # print('results from 1st column',results[2:])
+# print(results)
+# print('results',results.shape)
+# y_pred=pd.DataFrame(y_pred)
+# y_pred.columns=[algo_name]
+# try:
+#     results[algo_name]=y_pred[algo_name]
+# except:
+#     results=pd.concat([results, y_pred[algo_name]],axis=1)
+# print('y_pred',y_pred.shape)
+# print('results',results.shape)
+# results.to_csv('algo_results.csv')
 
 
 # ## Karnik ## Creating CSV of F1-scores

@@ -19,7 +19,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from scipy.stats import randint
 
 import matplotlib.pyplot as plt
-
+from time import perf_counter
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -74,21 +74,27 @@ X_test = scaler.transform(X_test)
 
 
 knn_model = KNeighborsClassifier(algorithm='kd_tree',metric='euclidean',n_neighbors=9,weights='distance')
+start_time=perf_counter()
 knn_model.fit(X_train, y_train)
-
+end_time=perf_counter()
+print('total_training_time: ',end_time-start_time)
 
 #to save model using job lib
-filename = 'knn.sav'
-joblib.dump(knn_model, filename)
+# filename = 'knn.sav'
+# joblib.dump(knn_model, filename)
 # pickle.dump(knn_model, open(filename, 'wb'))
 
-# y_pred = knn_model.predict(X_test)
+y_pred = knn_model.predict(X_test)
 
 
 # print('X_test keys',X_test.keys())
-# print(classification_report(y_test, y_pred, digits=3))
-# print(f1_score(y_test, y_pred, average='micro'))
+print(classification_report(y_test, y_pred, digits=3))
+print(f1_score(y_test, y_pred, average='micro'))
 
+results = permutation_importance(knn_model, X_test, y_test, scoring='f1_micro')
+importance = results.importances_mean
+for i,v in enumerate(importance):
+    print('Feature: %0d, Score %.5f' % (i,v))
 
 # # kp save to csv file
 # results=pd.read_csv('algo_results.csv')

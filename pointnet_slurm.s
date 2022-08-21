@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 #SBATCH --job-name=pointnet_preprocess
-#SBATCH --nodes=1
+#SBATCH --nodes=8
 #SBATCH --cpus-per-task=8
 #SBATCH --mail-type=END
 ##SBATCH --mail-user=kp2670@nyu.edu 
-#SBATCH --time=60:00:00
-#SBATCH --mem=32GB
+#SBATCH --time=150:00:00
+#SBATCH --mem=64GB
 #SBATCH --output=./pointnet_preprocess.out
 #SBATCH --error=./pointnet_preprocess.err
 

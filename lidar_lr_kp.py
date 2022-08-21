@@ -15,7 +15,7 @@ from sklearn.inspection import permutation_importance
 from sklearn.preprocessing import StandardScaler
 
 from sklearn.linear_model import LogisticRegression
-
+from time import perf_counter
 import matplotlib.pyplot as plt
 
 import warnings
@@ -40,10 +40,10 @@ warnings.filterwarnings("ignore")
 
 
 ## kp reading testing and training data seperately 
-X_train=pd.read_csv('X_train.csv')
-X_test=pd.read_csv('X_test.csv')
-y_train=pd.read_csv('y_train.csv')
-y_test=pd.read_csv('y_test.csv')
+X_train=pd.read_csv('../X_train.csv')
+X_test=pd.read_csv('../X_test.csv')
+y_train=pd.read_csv('../y_train.csv')
+y_test=pd.read_csv('../y_test.csv')
 y_train=y_train['true_labels'].to_numpy()
 y_test=y_test['true_labels'].to_numpy()
 
@@ -58,7 +58,10 @@ X_test = scaler.transform(X_test)
 
 
 logistic_model = LogisticRegression(multi_class='multinomial', solver='newton-cg',C=10.0)
+start_time=perf_counter()
 logistic_model.fit(X_train, y_train)
+end_time=perf_counter()
+print('total training time: ',end_time-start_time)
 
 y_pred = logistic_model.predict(X_test)
 
@@ -66,22 +69,22 @@ print(classification_report(y_test, y_pred, digits=3))
 print(f1_score(y_test, y_pred, average='micro'))
 
 
-# kp save to csv file
-results=pd.read_csv('algo_results.csv')
-algo_name='lr'
-results = results.loc[:, ~results.columns.str.contains('^Unnamed')]
-# print('results from 1st column',results[2:])
-print(results)
-print('results',results.shape)
-y_pred=pd.DataFrame(y_pred)
-y_pred.columns=[algo_name]
-try:
-    results[algo_name]=y_pred[algo_name]
-except:
-    results=pd.concat([results, y_pred[algo_name]],axis=1)
-print('y_pred',y_pred.shape)
-print('results',results.shape)
-results.to_csv('algo_results.csv')
+# # kp save to csv file
+# results=pd.read_csv('algo_results.csv')
+# algo_name='lr'
+# results = results.loc[:, ~results.columns.str.contains('^Unnamed')]
+# # print('results from 1st column',results[2:])
+# print(results)
+# print('results',results.shape)
+# y_pred=pd.DataFrame(y_pred)
+# y_pred.columns=[algo_name]
+# try:
+#     results[algo_name]=y_pred[algo_name]
+# except:
+#     results=pd.concat([results, y_pred[algo_name]],axis=1)
+# print('y_pred',y_pred.shape)
+# print('results',results.shape)
+# results.to_csv('algo_results.csv')
 
 
 '''
@@ -172,11 +175,11 @@ print(f1_score(y_test, y_pred, average='micro'))
 
 
 
-cm = confusion_matrix(y_test, y_pred, labels=logistic_model.classes_)
-cmd = ConfusionMatrixDisplay(cm, display_labels=logistic_model.classes_)
-fig = plt.figure(figsize=(20,20))
-ax = fig.add_subplot(111)
-cmd.plot(ax=ax, xticks_rotation='vertical');
+# cm = confusion_matrix(y_test, y_pred, labels=logistic_model.classes_)
+# cmd = ConfusionMatrixDisplay(cm, display_labels=logistic_model.classes_)
+# fig = plt.figure(figsize=(20,20))
+# ax = fig.add_subplot(111)
+# cmd.plot(ax=ax, xticks_rotation='vertical');
 
-plt.savefig('confusionmatrix_lr.png', dpi=600)
+# plt.savefig('confusionmatrix_lr.png', dpi=600)
 

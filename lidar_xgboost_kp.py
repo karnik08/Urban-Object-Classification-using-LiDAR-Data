@@ -19,34 +19,34 @@ from sklearn.inspection import permutation_importance
 
 import warnings
 warnings.filterwarnings("ignore")
-
+from time import perf_counter
 
 # # **IMPORT DATA, TEST/TRAIN SPLIT, SCALE**
 
 # In[3]:
 
 
-features = pd.read_csv("../geometric_features.csv")
+# features = pd.read_csv("../geometric_features.csv")
 
 # features = pd.read_csv("../data/test_geometric_features_normalized.csv")
 
-X = features.drop(['class'], axis=1)
-y = features[['class']].values.flatten()
+# X = features.drop(['class'], axis=1)
+# y = features[['class']].values.flatten()
 
 # print(len(X))
 # X=X[:300]
 # y=y[:300]
 
 
-X_train, X_test, y_train, y_test = train_test_split(X, y)
+# X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-## kp reading testing and training data seperately 
-# X_train=pd.read_csv('X_train.csv')
-# X_test=pd.read_csv('X_test.csv')
-# y_train=pd.read_csv('y_train.csv')
-# y_test=pd.read_csv('y_test.csv')
-# y_train=y_train['true_labels'].to_numpy()
-# y_test=y_test['true_labels'].to_numpy()
+# kp reading testing and training data seperately 
+X_train=pd.read_csv('../X_train.csv')
+X_test=pd.read_csv('../X_test.csv')
+y_train=pd.read_csv('../y_train.csv')
+y_test=pd.read_csv('../y_test.csv')
+y_train=y_train['true_labels'].to_numpy()
+y_test=y_test['true_labels'].to_numpy()
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -60,8 +60,10 @@ X_test = scaler.transform(X_test)
 
 
 model = XGBClassifier(tree_method='gpu_hist',gpu_id=0)
+start_time=perf_counter()
 model.fit(X_train, y_train)
-
+end_time=perf_counter()
+print('total_training_time',end_time-start_time)
 
 # In[9]:
 
@@ -71,6 +73,10 @@ y_pred = model.predict(X_test)
 
 print(classification_report(y_test, y_pred, digits=3))
 print(f1_score(y_test, y_pred, average='micro'))
+
+importance = model.feature_importances_
+for i,v in enumerate(importance):
+    print('Feature: %0d, Score: %.5f' % (i,v))
 
 '''
 # # kp save to csv file
